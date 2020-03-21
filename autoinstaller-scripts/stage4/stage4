@@ -8,19 +8,19 @@ GITHUB="https://github.com/asarubbo/gentoo-stage4/raw/master"
 DATE="20200125"
 
 ####### USER CONFIGS
-#TYPE="uefi"
+TYPE="uefi"
 #TYPE="bios"
 
-#STAGE4_URL="https://dev.gentoo.org/~ago/stage4/stage4-standard-"${DATE}".tar.xz"
-#MD5SUM="7ac3a736dd2cfc55a09b8779ff35f75d"
+STAGE4_URL="https://dev.gentoo.org/~ago/stage4/stage4-standard-"${DATE}".tar.xz"
+MD5SUM="7ac3a736dd2cfc55a09b8779ff35f75d"
 
 #STAGE4_URL="https://dev.gentoo.org/~ago/stage4/stage4-hardened-"${DATE}".tar.xz"
 #MD5SUM="4adcd41d108049978870d1139d690c01"
 
-DISK="/dev/sda"
-ESP="/dev/sda1"
-BOOT="/dev/sda2"
-ROOT="/dev/sda3"
+DISK="/dev/nvme0n1"
+ESP="/dev/nvme0n1p1"
+BOOT="/dev/nvme0n1p2"
+ROOT="/dev/nvme0n1p3"
 ##########
 
 LOCALTIME_URL="${GITHUB}/misc/CET"
@@ -64,19 +64,19 @@ curl -s -q -L "${LOCALTIME_URL}" --output /etc/localtime
 ntpdate -b time.ien.it > /dev/null 2>&1 && hwclock -w
 
 # CLEAN THE DISK
-dd if=/dev/zero of="${DISK}" bs=512 count=1 conv=notrunc > /dev/null 2>&1 || die
+dd if=/dev/zero of="${DISK}" bs=512 count=1 conv=notrunc > /dev/null 2>&1
 
 cd /tmp/
-curl -s -q -L "${PARTED_URL}" --output parted.txt || die
-sed "s:CHANGEME:${DISK}:" -i parted.txt || die
-parted -a optimal < ./parted.txt > /dev/null 2>&1 || die
-mkfs.ext4 -F "${BOOT}" > /dev/null 2>&1 || die
-mkfs.ext4 -F "${ROOT}" > /dev/null 2>&1 || die
-mkdir -p "${MOUNTPOINT}" || die
-mount "${ROOT}" "${MOUNTPOINT}" || die
-mkdir -p "${MOUNTPOINT}"/boot || die
-mount "${BOOT}" "${MOUNTPOINT}"/boot || die
-cd "${MOUNTPOINT}" || die
+curl -s -q -L "${PARTED_URL}" --output parted.txt 
+sed "s:CHANGEME:${DISK}:" -i parted.txt
+parted -a optimal < ./parted.txt > /dev/null 2>&1
+mkfs.ext4 "${BOOT}" 
+mkfs.ext4 "${ROOT}" 
+mkdir -p "${MOUNTPOINT}"
+mount "${ROOT}" "${MOUNTPOINT}"
+mkdir -p "${MOUNTPOINT}"/boot 
+mount "${BOOT}" "${MOUNTPOINT}"/boot
+cd "${MOUNTPOINT}"
 echo "DOWNLOAD IN PROGRESS..."
 curl -s -q -L "${STAGE4_URL}" --output stage4.tar.xz || die
 echo "DOWNLOAD DONE..."
